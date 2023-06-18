@@ -1,0 +1,17 @@
+name: dart_frog_error_handler
+description: An error handling middleware for Dart Frog that make it easier to manage server errors.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  dart_frog: ^0.3.7
+  dart_frog_request_logger: ^0.0.1
+  shelf: ^1.4.1
+
+dev_dependencies:
+  mocktail: ^0.3.0
+  test: ^1.19.2
+  very_good_analysis: ^5.0.0
