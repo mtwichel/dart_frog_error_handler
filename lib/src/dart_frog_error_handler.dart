@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart' show HijackException;
 Middleware errorHandlerMiddleware({
   required FutureOr<RequestLogger> Function(RequestContext context)
       loggerGetter,
+  Response? Function(Object error, RequestLogger logger)? customErrorHandler,
 }) {
   return (handler) {
     return (context) async {
@@ -28,6 +29,13 @@ Middleware errorHandlerMiddleware({
               return;
             }
 
+            if (customErrorHandler != null) {
+              final response = customErrorHandler(error, logger);
+              if (response != null) {
+                completer.complete(response);
+              }
+              return;
+            }
             if (error is BadRequestException) {
               logger.log(
                 Severity.warning,
@@ -37,7 +45,9 @@ Middleware errorHandlerMiddleware({
                 includeStacktrace: true,
               );
               completer.complete(error.response);
-            } else if (error is ServerError) {
+              return;
+            }
+            if (error is ServerError) {
               logger.log(
                 Severity.error,
                 error.message?.trim() ?? error.toString().trim(),
@@ -53,21 +63,22 @@ Middleware errorHandlerMiddleware({
                   body: 'Internal Server Error',
                 ),
               );
-            } else {
-              logger.log(
-                Severity.error,
-                error.toString().trim(),
-                stackTrace: stackTrace,
-                includeStacktrace: true,
-                isError: true,
-              );
-              completer.complete(
-                Response(
-                  statusCode: HttpStatus.internalServerError,
-                  body: 'Internal Server Error',
-                ),
-              );
+              return;
             }
+
+            logger.log(
+              Severity.error,
+              error.toString().trim(),
+              stackTrace: stackTrace,
+              includeStacktrace: true,
+              isError: true,
+            );
+            completer.complete(
+              Response(
+                statusCode: HttpStatus.internalServerError,
+                body: 'Internal Server Error',
+              ),
+            );
           },
         ),
       ).runGuarded(
