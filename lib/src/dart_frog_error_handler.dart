@@ -33,8 +33,8 @@ Middleware errorHandlerMiddleware({
               final response = customErrorHandler(error, logger);
               if (response != null) {
                 completer.complete(response);
+                return;
               }
-              return;
             }
             if (error is BadRequestException) {
               logger.log(
